@@ -1,8 +1,8 @@
 // src/api/appointmentService.js
-import { toast } from 'react-toastify';
-import axiosInstance from './axiosInstance';
+import { toast } from "react-toastify";
+import axiosInstance from "./axiosInstance";
 
-const handleApiError = (error, fallbackMessage = 'Something went wrong') => {
+const handleApiError = (error, fallbackMessage = "Something went wrong") => {
   const message = error?.response?.data?.message || fallbackMessage;
   toast.error(message);
   throw new Error(message);
@@ -19,11 +19,12 @@ const appointmentService = {
    */
   bookAppointment: async (data) => {
     try {
-      const res = await axiosInstance.post('/appointments/book', data);
-      toast.success('Appointment booked!');
-      return res.data;          // { message, appointmentId, callLink }
+      const res = await axiosInstance.post("/appointments/book", data);
+      appointmentService._apptCache.delete(data.patientId);
+      toast.success("Appointment booked!");
+      return res.data; // { message, appointmentId, callLink }
     } catch (error) {
-      handleApiError(error, 'Booking failed');
+      handleApiError(error, "Booking failed");
     }
   },
 
@@ -32,11 +33,17 @@ const appointmentService = {
    * @param {String} patientId
    */
   getAppointmentsByPatient: async (patientId) => {
+    // return cached if available
+    if (appointmentService._apptCache.has(patientId)) {
+      return appointmentService._apptCache.get(patientId);
+    }
     try {
       const res = await axiosInstance.get(`/appointments/patient/${patientId}`);
-      return res.data;          // Array of appointments
+      appointmentService._apptCache.set(patientId, res.data);
+
+      return res.data; // Array of appointments
     } catch (error) {
-      handleApiError(error, 'Could not load appointments');
+      handleApiError(error, "Could not load appointments");
     }
   },
 
@@ -49,7 +56,7 @@ const appointmentService = {
       const res = await axiosInstance.get(`/appointments/doctor/${doctorId}`);
       return res.data;
     } catch (error) {
-      handleApiError(error, 'Could not load appointments');
+      handleApiError(error, "Could not load appointments");
     }
   },
 
@@ -64,10 +71,10 @@ const appointmentService = {
         `/appointments/${appointmentId}/reschedule`,
         data
       );
-      toast.success('Appointment rescheduled!');
-      return res.data;          // { message, callLink }
+      toast.success("Appointment rescheduled!");
+      return res.data; // { message, callLink }
     } catch (error) {
-      handleApiError(error, 'Reschedule failed');
+      handleApiError(error, "Reschedule failed");
     }
   },
 
@@ -78,10 +85,10 @@ const appointmentService = {
   cancelAppointment: async (appointmentId) => {
     try {
       const res = await axiosInstance.delete(`/appointments/${appointmentId}`);
-      toast.success('Appointment cancelled');
-      return res.data;          // { message }
+      toast.success("Appointment cancelled");
+      return res.data; // { message }
     } catch (error) {
-      handleApiError(error, 'Cancellation failed');
+      handleApiError(error, "Cancellation failed");
     }
   },
 
@@ -96,10 +103,10 @@ const appointmentService = {
         `/appointments/${appointmentId}/status`,
         { status }
       );
-      toast.success('Status updated');
-      return res.data;          // { message }
+      toast.success("Status updated");
+      return res.data; // { message }
     } catch (error) {
-      handleApiError(error, 'Status update failed');
+      handleApiError(error, "Status update failed");
     }
   },
 
@@ -109,10 +116,12 @@ const appointmentService = {
    */
   getCallLink: async (appointmentId) => {
     try {
-      const res = await axiosInstance.get(`/appointments/${appointmentId}/call-link`);
-      return res.data;          // { callLink }
+      const res = await axiosInstance.get(
+        `/appointments/${appointmentId}/call-link`
+      );
+      return res.data; // { callLink }
     } catch (error) {
-      handleApiError(error, 'Unable to get call link');
+      handleApiError(error, "Unable to get call link");
     }
   },
 
@@ -126,11 +135,11 @@ const appointmentService = {
    */
   createAvailability: async (data) => {
     try {
-      const res = await axiosInstance.post('/availabilities', data);
-      toast.success('Availability created');
-      return res.data;          // slot object
+      const res = await axiosInstance.post("/availabilities", data);
+      toast.success("Availability created");
+      return res.data; // slot object
     } catch (error) {
-      handleApiError(error, 'Creation failed');
+      handleApiError(error, "Creation failed");
     }
   },
 
@@ -142,10 +151,10 @@ const appointmentService = {
   updateAvailability: async (id, data) => {
     try {
       const res = await axiosInstance.put(`/availabilities/${id}`, data);
-      toast.success('Availability updated');
+      toast.success("Availability updated");
       return res.data;
     } catch (error) {
-      handleApiError(error, 'Update failed');
+      handleApiError(error, "Update failed");
     }
   },
 
@@ -156,10 +165,10 @@ const appointmentService = {
   deleteAvailability: async (id) => {
     try {
       const res = await axiosInstance.delete(`/availabilities/${id}`);
-      toast.success('Availability deleted');
-      return res.data;          // { message }
+      toast.success("Availability deleted");
+      return res.data; // { message }
     } catch (error) {
-      handleApiError(error, 'Deletion failed');
+      handleApiError(error, "Deletion failed");
     }
   },
 };
